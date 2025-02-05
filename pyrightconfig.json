@@ -1,0 +1,14 @@
+{
+    "include": [
+        "backend"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "backend/venv"
+    ],
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "pythonVersion": "3.8",
+    "pythonPlatform": "Windows"
+} 
