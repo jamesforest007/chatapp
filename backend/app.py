@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from openai import OpenAI, OpenAIError
 import ollama
 import os
 
@@ -8,6 +9,9 @@ os.environ['HTTP_PROXY'] = ''
 os.environ['HTTPS_PROXY'] = ''
 os.environ['http_proxy'] = ''
 os.environ['https_proxy'] = ''
+
+client = OpenAI(api_key="sk-d321c3b960284c11b3961629980ce184", base_url="https://api.deepseek.com")
+
 
 app = Flask(__name__)
 CORS(app)
@@ -32,14 +36,16 @@ def send_message():
     # Call Ollama using Python library
     try:
         # Get response from Ollama
-        response = ollama.chat(model='llama3.2:latest', messages=[
-            {
-                'role': 'user',
-                'content': data['text']
-            }
-        ])
+        response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant"},
+            {"role": "user", "content": user_message['text']},
+        ],
+        stream=False
+    )
         
-        ai_text = response['message']['content']
+        ai_text = response.choices[0].message.content
         
         ai_message = {
             'id': len(messages) + 1,
@@ -57,19 +63,6 @@ def send_message():
     messages.append(ai_message)
     return jsonify([user_message, ai_message])
 
-@app.route('/api/test-ollama', methods=['GET'])
-def test_ollama():
-    try:
-        response = ollama.chat(model='llama3.2:latest', messages=[
-            {
-                'role': 'user',
-                'content': 'Say hello!'
-            }
-        ])
-        return jsonify({"status": "success", "response": response})
-    except Exception as e:
-        print(f"Test error details: {str(e)}")  # 添加测试错误日志
-        return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True) 
